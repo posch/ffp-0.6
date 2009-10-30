@@ -1,0 +1,5 @@
+The module-init-tools package provides many of the utilities needed by
+Linux systems for managing loadable Linux Kernel Modules. This
+includes depmod, insmod, rmmod, modprobe and tools like modinfo.
+
+  Homepage: http://www.kerneltools.org/KernelTools.org

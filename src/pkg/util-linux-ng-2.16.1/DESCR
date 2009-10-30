@@ -1,0 +1,5 @@
+The util-linux-ng is a fork of the original util-linux project. The
+goal of the util-linux-ng is a transparent and reliable development
+that follows the Linux kernel and Linux distributions.
+
+Homepage: http://userweb.kernel.org/~kzak/util-linux-ng/

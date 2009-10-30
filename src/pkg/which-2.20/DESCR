@@ -1,0 +1,7 @@
+Which is a utility that prints out the full path of the executables
+that bash(1) would execute when the passed program names would have
+been entered on the shell prompt. It does this by using the exact same
+algorithm as bash.  Tildes and a dot in the PATH are now expanded to
+the full path by default.  Options allow to rather print "~/*" or
+"./*" and/or to print all exectuables that match any directory in
+PATH.

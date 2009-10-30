@@ -1,0 +1,11 @@
+BusyBox: The Swiss Army Knife of Embedded Linux
+BusyBox combines tiny versions of many common UNIX utilities into a
+single small executable.
+
+This package includes several common daemons:
+ * crond
+ * inetd
+ * init
+ * syslogd/klogd
+ * telnetd
+

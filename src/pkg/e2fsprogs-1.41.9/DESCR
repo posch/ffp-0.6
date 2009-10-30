@@ -1,0 +1,4 @@
+Utilities needed to create and maintain ext2 and ext3 filesystems.
+
+These utilities were written by Remy Card (the developer and
+maintainer of the ext2 fs) and Theodore T'so.

@@ -1,0 +1,6 @@
+Expect is a tool for automating interactive applications such as
+telnet, ftp, passwd, fsck, rlogin, tip, etc. Expect really makes this
+stuff trivial. Expect is also useful for testing these same
+applications.
+
+Homepage: http://expect.nist.gov/

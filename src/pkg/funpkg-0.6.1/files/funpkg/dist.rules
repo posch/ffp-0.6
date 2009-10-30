@@ -1,0 +1,22 @@
+
+# overwrite start scripts, but keep current permissions
+!%/ffp/start/*.sh
+
+# there's only one correct FFP_ARCH
+!/ffp/etc/ffp-arch
+
+# use dist.rules from funpkg packages
+!/ffp/etc/funpkg/dist.rules
+
+# special config files
+!/ffp/etc/{protocols,services}
+
+# always use examples from packages
+!/ffp/etc/examples/**
+
+# protect all remaining config files
+/ffp/etc/**
+
+# dont change the shell
+/ffp/bin/sh
+

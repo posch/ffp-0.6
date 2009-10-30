@@ -1,0 +1,328 @@
+#!/ffp/bin/sh
+
+WORKDIR=${TMPDIR:-/tmp}/build
+
+[ -n "$DISTDIR" ] || DISTDIR="/ffp/src/distfiles"
+
+exec 3>&1
+_print() { echo "$@" >&3; }
+_log()   { echo "$@" >&1; echo "$@" >&3; }
+_warn()  { echo "WARNING: $@" >&2; echo "WARNING: $@" >&3; }
+_error() { echo "ERROR: $@" >&2; echo "ERROR: $@" >&3; }
+
+die() { echo "$@" >&2; exit 1; }
+
+# FFP_ARCH
+
+if [ -z "$FFP_ARCH" ]; then
+    if [ -r /ffp/etc/ffp-arch ]; then
+	FFP_ARCH=$(cat /ffp/etc/ffp-arch)
+    else
+	die "FFP_ARCH unset"
+    fi
+fi
+
+
+# GNU_HOST GNU_TARGET
+# LINUX_ARCH
+
+case "$FFP_ARCH" in
+    arm)
+	GNU_HOST=arm-ffp-linux-uclibc
+	GNU_TARGET=$GNU_HOST
+	LINUX_ARCH=arm
+	;;
+    armel)
+	GNU_HOST=arm-ffp-linux-uclibcgnueabi
+	GNU_TARGET=$GNU_HOST
+	LINUX_ARCH=arm
+	;;
+    *)
+	die "FFP_ARCH invalid ($FFP_ARCH)"
+	;;
+esac
+
+
+# GNU_BUILD
+
+GNU_BUILD=$(gcc -dumpmachine 2>/dev/null)
+[ -n "$GNU_BUILD" ] || die "Failed to determine GNU_BUILD"
+
+
+# FFP_RPATH FFP_CFLAGS FFP_LDFLAGS
+
+FFP_RPATH=/ffp/lib
+FFP_CFLAGS="-O2 -pipe"
+FFP_LDFLAGS="-Wl,-rpath,$FFP_RPATH"
+
+
+# infodir mandir docdir
+
+infodir=/ffp/info
+mandir=/ffp/man
+docdir=/ffp/doc
+
+
+# read custom config
+if [ -r "/ffp/etc/mkfunpkg.conf" ]; then
+    . /ffp/etc/mkfunpkg.conf
+fi
+
+# print env
+cat <<EOF
+FFP_ARCH=$FFP_ARCH
+GNU_BUILD=$GNU_BUILD
+GNU_HOST=$GNU_HOST
+GNU_TARGET=$GNU_TARGET
+FFP_RPATH=$FFP_RPATH
+FFP_CFLAGS="$FFP_CFLAGS"
+FFP_LDFLAGS="$FFP_LDFLAGS"
+infodir=$infodir
+mandir=$mandir
+docdir=$docdir
+EOF
+
+
+# build helper functions
+
+_setX() { # var [default]
+    local n="$1"
+    shift
+    if [ -r "$X/$n" ]; then
+	eval $n=\"$(egrep -v '^ *(#|$)' $X/$n)\"
+    elif [ $# -gt 0 ]; then
+	eval $n="$@"
+    else
+	die "$n: unset"
+    fi
+}
+
+__fetch() { # url
+    local url="$1"
+    
+    case "$url" in
+	http://*)
+	    _print "wget $url"
+	    wget "$url"
+	    ;;
+	ftp://*)
+	    _print "wget $url"
+	    wget "$url"
+	    ;;
+	*)
+	    _warn "fetch: Don't know how to fetch '$url'"
+	    ;;
+    esac
+}
+
+_fetch() {
+    local SRC_URI url f dir
+
+    _setX SRC_URI ""
+    if [ -n "$SRC_URI" ]; then
+	if [ -d "$DISTDIR" ]; then
+	    dir="$DISTDIR"
+	else
+	    _warn "fetch: $DISTDIR: No such directory"
+	    dir="$W"
+	fi
+	eval SRC_URI=$(egrep -v '^ *(#|$)' $X/SRC_URI)
+	for url in $SRC_URI; do
+	    if [ -n "$url" ]; then
+		f=$(basename $url)
+		if [ -e "$dir/$f" ]; then
+		    _print "fetch: found $f"
+		else
+		    ( cd $dir; __fetch "$url" )
+		fi
+	    fi
+	done
+    fi
+}
+
+__unpack() { # archive-file
+    local f
+    for f in "$@"; do
+        if [ -r "$f" ]; then
+            case "$f" in
+                *.tgz|*.tar.gz)
+                    _log "unpack: tar xzf $f"
+                    tar xzf "$f"
+                    ;;
+                *.tbz2|*.tar.bz2)
+                    _log "unpack: tar xjf $f"
+                    tar xjf "$f"
+                    ;;
+                *)
+                    _warn "unpack: Don't know how to unpack $f"
+                    ;;
+            esac
+        else
+            _error "unpack: $f: File not found"
+	    return 1
+        fi
+    done
+}
+
+_unpack() # archive-name
+{
+    local n d e
+    for n in "$@"; do
+	for d in "." "$X" "${DISTDIR:-/ffp/src/distfiles}"; do
+	    for e in "" ".tar.bz2" ".tbz2" ".tar.gz" ".tgz"; do
+		if [ -e "$d/$1$e" ]; then
+		    __unpack "$d/$1$e"
+		    return $?
+		fi
+	    done
+	done
+	_error "unpack: $1: File not found"
+    done
+}
+
+_update_gnu_config()
+{
+    local f
+    
+    for f in $(find -name config.sub -o -name config.guess); do
+        _log "update_gnu_config: $f"
+        # keep original file, we need its timestamp
+        mv "$f" "$f.orig"
+        # install new version
+        cat /ffp/lib/mkfunpkg/$(basename "$f") >"$f"
+        chmod 0755 "$f"
+        touch -r "$f.orig" "$f"
+    done
+}
+
+_doc() # files...
+{
+    mkdir -p $D$docdir/$P
+    cp -a "$@" $D$docdir/$P
+    chown -R 0:0 $D$docdir/$P
+}
+
+_descr() # file
+{
+    mkdir -p $D/install
+    cat "${1:-$X/DESCR}" >$D/install/DESCR
+}
+
+_setpkg()
+{
+    PKG=$PN$1-$PV-$FFP_ARCH-$PR
+    D=$W/pkg$1
+    mkdir -p $D
+}
+
+_makepkg() # tgz
+{
+    local ext
+    case "$1" in
+	tgz)
+	    ext=tgz
+	    ;;
+	*)
+	    ext=txz
+	    if ! which xz >/dev/null 2>&1; then
+		_print "WARNING: xz not found"
+		ext=tgz
+	    fi
+	    ;;
+    esac
+    local pkg="$WORKDIR/$PKG.$ext"
+
+    _print "makepkg: $pkg"
+
+    # run destdir functions
+    local f
+    for f in /ffp/lib/mkfunpkg/makepkg-*.sh; do
+	if [ -r "$f" ]; then
+	    _print "  $(basename $f)"
+	    ( cd $D; set +ve; . $f )
+	fi
+    done
+
+    case "$pkg" in
+	*.tgz)
+	    tar cf - -C "$D" . | gzip -9c >"$pkg"
+	    ;;
+	*.txz)
+	    tar cf - -C "$D" . | xz -c >"$pkg"
+	    ;;
+    esac
+}
+
+
+# main
+
+usage() {
+    cat <<EOF
+Usage: mkfunpkg [options] [pkgdir]
+Options:
+ -t      Run testsuite
+
+Environment variables:
+ FFP_ARCH
+ TMPDIR
+ DISTDIR
+EOF
+    exit 2
+}
+
+unset TESTSUITE
+case "$1" in
+    -t)
+	TESTSUITE=yes
+	shift
+	;;
+    -*)
+	echo "Unknown option: $1"
+	usage
+	;;
+esac
+
+if [ -d "$1" ]; then
+    X=$(cd "$1"; pwd)
+    P=$(basename "$1")
+else
+    X=$(pwd)
+    P=$(basename "$X")
+fi
+PN=${P%-*}
+PV=${P##*-}
+_setX PR
+[ -r "$X/$PN.build.sh" ] || die "$X: No $PN.build.sh"
+
+W=$WORKDIR/$P
+rm -rf $W
+mkdir -p $W
+
+cat <<EOF
+
+X=$X
+P=$P
+PN=$PN
+PV=$PV
+W=$W
+
+EOF
+
+_fetch
+
+echo "$P ..."
+( set -ve; cd $W; _setpkg; . $X/$PN.build.sh >$W/$P-$PR.build.log 2>&1 )
+[ $? -eq 0 ] || die "build failed ($?)"
+
+if [ "$TESTSUITE" = "yes" ]; then
+    if [ -r "$X/$PN.testsuite.sh" ]; then
+	echo "testsuite ..."
+	( cd $W; set -ve; . $X/$PN.testsuite.sh >$W/$P-$PR.testsuite.log 2>&1 )
+	[ $? -eq 0 ] || echo "testsuite failed ($?)"
+    else
+	echo "$X: No $PN.testsuite.sh"
+    fi
+fi
+
+echo "Ok"
+

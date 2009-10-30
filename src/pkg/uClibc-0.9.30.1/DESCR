@@ -1,0 +1,6 @@
+uClibc (aka µClibc/pronounced yew-see-lib-see) is a C library for
+developing embedded Linux systems. It is much smaller than the GNU C
+Library, but nearly all applications supported by glibc also work
+perfectly with uClibc.
+
+  Homepage: http://www.uclibc.org/

@@ -1,0 +1,9 @@
+BusyBox: The Swiss Army Knife of Embedded Linux
+BusyBox combines tiny versions of many common UNIX utilities into a
+single small executable.
+
+This package includes networking programs (arp, brctl, ifconfig,
+rdate, ...), the busybox ash shell, and various system utilities
+(adjtimex, killall5, last, time, ...).
+
+

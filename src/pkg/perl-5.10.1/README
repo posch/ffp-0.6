@@ -1,0 +1,18 @@
+* Problem: -fstack-protector
+
+build.log:
+
+Any additional cc flags?
+[-D_REENTRANT -D_GNU_SOURCE -DTHREADS_HAVE_PIDS -fno-strict-aliasing -pipe -fstack-protector]  
+Let me guess what the preprocessor flags are...
+Any additional ld flags (NOT including libraries)? [ -fstack-protector]  
+
+fix:
+
+remove 'set stack-protector -fstack-protector' from Configure
+
+
+* Problem: Configure detects armv5tel
+
+
+

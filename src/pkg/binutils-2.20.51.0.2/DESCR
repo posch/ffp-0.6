@@ -1,0 +1,9 @@
+The GNU Binutils are a collection of binary tools. The main ones are:
+ * ld - the GNU linker.
+ * as - the GNU assembler.
+
+The binutils have been ported to most major Unix variants as well as
+Wintel systems, and their main reason for existence is to give the GNU
+system (and GNU/Linux) the facility to compile and link programs.
+
+Homepage: http://sourceware.org/binutils/

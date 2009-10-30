@@ -1,0 +1,4 @@
+dialog is a script-interpreter which provides a set of curses
+widgets. Widgets are objects whose appearance and behavior can be
+customized. There is a much-reduced variation of dialog, called
+lxdialog, which is used in Linux kernel configuration.

@@ -1,0 +1,10 @@
+The GNU `gettext' utilities are a set of tools that provides a
+framework to help other GNU packages produce multi-lingual
+messages. These tools include a set of conventions about how programs
+should be written to support message catalogs, a directory and file
+naming organization for the message catalogs themselves, a runtime
+library supporting the retrieval of translated messages, and a few
+stand-alone programs to massage in various ways the sets of
+translatable strings, or already translated strings.
+
+Homepage: http://www.gnu.org/software/gettext/

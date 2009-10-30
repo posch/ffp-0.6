@@ -1,0 +1,3 @@
+f	rsync://inreto.de/testing/ffp/0.6/arch/$FFP_ARCH/packages/All
+l	/ffp/src/arch/$FFP_ARCH/packages/All
+

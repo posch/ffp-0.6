@@ -1,0 +1,22 @@
+diff -urN iproute2-2.6.29-1/ip/Makefile iproute2-2.6.29-1.new/ip/Makefile
+--- iproute2-2.6.29-1/ip/Makefile	2009-03-24 23:40:54.000000000 +0100
++++ iproute2-2.6.29-1.new/ip/Makefile	2009-10-20 19:30:04.000000000 +0200
+@@ -1,5 +1,5 @@
+ IPOBJ=ip.o ipaddress.o ipaddrlabel.o iproute.o iprule.o \
+-    rtm_map.o iptunnel.o ip6tunnel.o tunnel.o ipneigh.o ipntable.o iplink.o \
++    rtm_map.o iptunnel.o tunnel.o ipneigh.o ipntable.o iplink.o \
+     ipmaddr.o ipmonitor.o ipmroute.o ipprefix.o \
+     ipxfrm.o xfrm_state.o xfrm_policy.o xfrm_monitor.o \
+     iplink_vlan.o link_veth.o link_gre.o
+diff -urN iproute2-2.6.29-1/ip/iptunnel.c iproute2-2.6.29-1.new/ip/iptunnel.c
+--- iproute2-2.6.29-1/ip/iptunnel.c	2009-03-24 23:40:54.000000000 +0100
++++ iproute2-2.6.29-1.new/ip/iptunnel.c	2009-10-20 19:29:47.000000000 +0200
+@@ -483,7 +483,7 @@
+ 	 * IPv4 and IPv6.
+ 	 */
+ 	case AF_INET6:
+-		return do_ip6tunnel(argc, argv);
++		/* IPv6 disabled. Fall thru */
+ 	default:
+ 		fprintf(stderr, "Unsupported family:%d\n", preferred_family);
+ 		exit(-1);

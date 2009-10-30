@@ -1,0 +1,5 @@
+pkg-config is a helper tool used when compiling applications and
+libraries. It helps you insert the correct compiler options on the
+command line.
+
+Homepage: http://pkg-config.freedesktop.org/wiki/

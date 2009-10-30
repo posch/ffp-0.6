@@ -1,0 +1,82 @@
+#!/ffp/bin/sh
+
+logfile=/ffp/funpkg/newconf.log
+C=/ffp/funpkg/slacker/cache
+newconf_dirs="/ffp/etc /ffp/start"
+
+tempfile=$C/newconf.tmp
+
+do_newconf() # newfile
+{
+	if [ ! -e "$1" ]; then
+		echo "$1: Not found"
+		exit 1
+	fi
+
+	local f="$1"
+       	local b="${1%.new}"
+	local status
+
+	dialog --menu "$f" 0 0 0 \
+		"skip"		"Skip file" \
+		"diff"		"Show differences (diff -u)" \
+		"overwrite"	"Replace $b with $f" \
+		"backup"	"Backup $b, then install $f" \
+		"remove"	"Remove $f" \
+		2>$tempfile
+	status=$?
+
+	if [ $status -ne 0 ]; then
+		echo "Cancelled"
+		return $status
+	fi
+
+	tag=$(cat $tempfile)
+	case "$tag" in 
+		skip)
+			return 0
+			;;
+		diff)
+			if [ -r "$b" -a -r "$f" ]; then
+				diff -u "$b" "$f" >$tempfile
+				dialog --textbox "$tempfile" 0 0
+			else
+				dialog --msgbox "No diff available" 5 40
+			fi
+			do_newconf "$f"
+			return
+			;;
+		overwrite)
+			cmd="rm -f '$b' && mv -f '$f' '$b'"
+			;;
+		backup)
+			cmd="rm -f '$b.bak' && mv -f '$b' '$b.bak' && mv -f '$f' '$b'"
+			;;
+		remove)
+			cmd="rm -f '$f'"
+			;;
+		*)
+			echo "Internal error"
+			return 1
+			;;
+	esac
+
+	eval "( set -xe; $cmd )" >$tempfile 2>&1
+	status=$?
+
+	echo "$(date '+[%d %b %Y %H:%M:%S]') $cmd (status $status)" >>$logfile
+	if [ $status -ne 0 ]; then
+		dialog --title "$f - Command failed with status $status" --textbox "$tempfile" 0 0
+		do_newconf "$f"
+	fi
+	return 0
+}
+
+for f in $(find $newconf_dirs -type f -name \*.new 2>/dev/null); do
+	do_newconf "$f" || break
+done
+
+rm -f $tempfile
+echo
+
+

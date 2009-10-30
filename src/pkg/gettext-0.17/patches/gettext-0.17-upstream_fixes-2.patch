@@ -1,0 +1,64 @@
+Submitted By: Robert Connolly <robert at linuxfromscratch dot org> (ashes)
+Date: 2009-05-17  Updated 2009-05-27
+Initial Package Version: 0.13
+Origin: Upstream via Robert Connolly
+Description: Set permissions explicitly
+
+Update fixes an issue in gettext-tools/misc/autopoint.in where a user's cvs i
+directory could be overwritten incorrectly.
+
+http://cvs.savannah.gnu.org/viewvc/gettext/gettext-tools/src/write-catalog.c?root=gettext&r1=1.4&r2=1.5&view=patch
+
+This adjusts the arguments to open() to specify permissions and ownership.
+
+Also see: http://www.archivum.info/bug-gnu-utils%40gnu.org/2007-12/msg00036.html
+
+2007-11-07  Jim Meyering  <meyering@redhat.com>
+	Bruno Haible  <bruno@clisp.org>
+	* write-catalog.c (msgdomain_list_print): Fix open() call.
+
+http://cvs.savannah.gnu.org/viewvc/gettext/gettext/gettext-tools/misc/autopoint.in?r1=1.37&r2=1.38&view=patch
+
+2008-04-20  Bruno Haible  <bruno@clisp.org>
+
+	* autopoint.in: Check that really all CVS directories are removed.
+	Reported by Jim Meyering <jim@meyering.net>.
+
+diff -Naur gettext-0.17.orig/gettext-tools/misc/autopoint.in gettext-0.17/gettext-tools/misc/autopoint.in
+--- gettext-0.17.orig/gettext-tools/misc/autopoint.in	2007-11-07 02:53:58.000000000 +0000
++++ gettext-0.17/gettext-tools/misc/autopoint.in	2009-02-22 21:08:36.000000000 +0000
+@@ -424,6 +424,13 @@
+ cvsver=gettext-`echo "$ver" | sed -e 's/\./_/g'`
+ (cvs checkout -r"$cvsver" archive > /dev/null) 2>&1 | grep -v '^cvs checkout: Updating'
+ find archive -name CVS -type d -print | xargs rm -rf
++# Check that really all CVS directories are gone, otherwise we would overwrite
++# the contents of the user's CVS directories.
++if test `find archive -name CVS -type d -print | wc -l` != 0; then
++  cd ..
++  rm -rf "$cvs_dir" "$work_dir"
++  func_fatal_error "failed to remove all CVS subdirectories"
++fi
+ if test `find archive -type f -print | wc -l` = 0; then
+   cd ..
+   rm -rf "$cvs_dir" "$work_dir"
+diff -Naur gettext-0.17.orig/gettext-tools/src/write-catalog.c gettext-0.17/gettext-tools/src/write-catalog.c
+--- gettext-0.17.orig/gettext-tools/src/write-catalog.c	2007-10-07 19:37:39.000000000 +0000
++++ gettext-0.17/gettext-tools/src/write-catalog.c	2009-02-22 21:08:20.000000000 +0000
+@@ -1,5 +1,5 @@
+ /* GNU gettext - internationalization aids
+-   Copyright (C) 1995-1998, 2000-2006 Free Software Foundation, Inc.
++   Copyright (C) 1995-1998, 2000-2007 Free Software Foundation, Inc.
+ 
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+@@ -220,7 +220,9 @@
+       /* Open the output file.  */
+       if (!to_stdout)
+ 	{
+-	  fd = open (filename, O_WRONLY | O_CREAT);
++	  fd = open (filename, O_WRONLY | O_CREAT | O_TRUNC,
++		     /* 0666 in portable POSIX notation: */
++		     S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+ 	  if (fd < 0)
+ 	    {
+ 	      const char *errno_description = strerror (errno);

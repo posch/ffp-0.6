@@ -1,0 +1,19 @@
+--- libc/include/limits.h.old	2009-10-09 14:07:45.000000000 +0200
++++ libc/include/limits.h	2009-10-14 16:04:22.000000000 +0200
+@@ -128,13 +128,13 @@
+    ages are available.  */
+ # ifdef __USE_ISOC99
+ #  ifndef LLONG_MIN
+-#   define LLONG_MIN	LONG_LONG_MIN
++#   define LLONG_MIN	(-LLONG_MAX-1)
+ #  endif
+ #  ifndef LLONG_MAX
+-#   define LLONG_MAX	LONG_LONG_MAX
++#   define LLONG_MAX	__LONG_LONG_MAX__
+ #  endif
+ #  ifndef ULLONG_MAX
+-#   define ULLONG_MAX	ULONG_LONG_MAX
++#   define ULLONG_MAX	(LLONG_MAX * 2ULL + 1)
+ #  endif
+ # endif
+ #endif

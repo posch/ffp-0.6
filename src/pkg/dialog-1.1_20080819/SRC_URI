@@ -1,0 +1,1 @@
+ftp://invisible-island.net/dialog/dialog-$(echo $PV | tr '_' '-').tgz

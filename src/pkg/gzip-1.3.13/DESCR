@@ -1,0 +1,5 @@
+gzip (GNU zip) is a popular data compression program written by
+Jean-loup Gailly for the GNU project. Mark Adler wrote the
+decompression part.
+
+Homepage: http://www.gnu.org/software/gzip/

@@ -1,0 +1,22 @@
+-- T.Dickey <dickey@invisible-island.net> 8 Nov 2008
+
+The files in this directory are patches against ncurses 5.7 release.
+
+Patches are named according to the date on which I generate them, e.g.,
+
+	ncurses-5.7-yyyymmdd.patch.gz
+	
+I usually upload a new patch file on Saturday evenings.  If a serious error
+is found, I will make a patch that resolves that problem.
+
+Roughly once a month I create a rollup patch, which consists of all changes
+from the release through the current date.  If you have the rollup patch, you
+will not need the corresponding weekly patch -- it's included.
+
+Rollup patches are a shell script, e.g.,
+
+	patch-5.7-yyyymmdd.sh.gz
+
+Once I have uploaded a rollup patch, I remove older weekly patches.  The weekly
+patches are of interest mainly to people who are mirroring development trees
+with ncurses.
